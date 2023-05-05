@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var hostname = "http://magnificentunderstatedfossil.esu5.repl.co"//"http://localhost:9999"
+var hostname = "http://localhost:9999"
 
 func random() string {
 	buff := make([]byte, 32)
