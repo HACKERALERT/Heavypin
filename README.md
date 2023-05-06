@@ -1,5 +1,5 @@
 # Heavypin
-Heavypin is a lightweight proxy designed to bypass firewalls by transferring traffic through HTTPS requests.
+A lightweight proxy designed to bypass firewalls by transferring traffic through HTTPS requests.
 
 # Installation
 You will need both a server and a client application for Heavypin to work. Make sure you have <a href="https://go.dev/dl/">Go</a> installed.
