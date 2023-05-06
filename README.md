@@ -3,6 +3,7 @@ Heavypin is a lightweight HTTPS-based proxy for bypassing firewalls.
 <strong>This documentation is a work in progress.</strong>
 
 # Installation
+You will need both a server application and a client application for Heavypin to work. The instructions are as follows:
 
 ## Server
 Install Heavypin on the server that will act as the proxy:
