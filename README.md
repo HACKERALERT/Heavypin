@@ -2,7 +2,9 @@ Heavypin is a lightweight HTTPS-based proxy for bypassing firewalls.
 
 <strong>This documentation is a work in progress.</strong>
 
-# Server
+# Installation
+
+## Server
 Install Heavypin on the server that will act as the proxy:
 ```
 go install github.com/HACKERALERT/Heavypin/heavypin-server@latest
@@ -13,7 +15,7 @@ heavypin-server
 ```
 This will start an HTTP server on `:8080`. You can use this port directly as is, however, you should setup a reverse HTTPS proxy from `:443` to `:8080` if possible to better obfuscate the connection and hide the fact that you are proxying your traffic through that port. This makes the connection much harder to detect and block.
 
-# Client
+## Client
 On your local machine, you will need the client application to connect to the server:
 ```
 go install github.com/HACKERALERT/Heavypin/heavypin-client@latest
