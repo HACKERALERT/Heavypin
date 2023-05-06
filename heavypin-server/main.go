@@ -20,6 +20,10 @@ func main() {
 		m map[string]*Tunnel
 	}{m: make(map[string]*Tunnel)}
 
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	http.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Creating tunnel", r.FormValue("token"), "to", r.FormValue("host"))
 		conn, _ := net.DialTimeout("tcp", r.FormValue("host"), 10*time.Second)
