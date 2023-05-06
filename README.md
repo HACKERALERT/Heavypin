@@ -33,7 +33,7 @@ Or if you are reverse proxying `:443` to `:8080` and have a hostname:
 ```
 heavypin-client -s "https://myhostname.com"
 ```
-Once the client application connects to the server, it will start a local HTTP proxy on `:8888`. You can then use `http://localhost:8888` as a proxy in your browser to securely access the free and open Internet.
+Once the client application connects to the server, it will start a local HTTP proxy on `:8888`. You can then use `http://localhost:8888` as a proxy in your browser to securely access the free and open Internet. Note that accessing an insecure HTTP website in your browser will yield a 405 Method Not Allowed error - this is intentionally done to ensure that there is always at least one layer of encryption between your browser and the target website. To fix this, just remember to always use the secure HTTPS version of the website.
 
 # Goals
 Heavypin is a mostly experimental and proof-of-concept project to demonstrate and implement some simple circumvention techniques. It's simple and limited in functionality, but usable enough that I felt it's good enough to be released into the public. As such, I don't plan to make Heavypin the next Shadowsocks or V2Ray by constantly adding new obfuscation and circumvention techniques. What Heavypin is now is what it will remain. Use this software for what it is.
