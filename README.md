@@ -5,10 +5,18 @@ You will need to install Heavypin on a server that will act as the proxy:
 ```
 go install github.com/HACKERALERT/Heavypin/heavypin-server@latest
 ```
+To start the server:
+```
+heavypin-server
+```
 
 Then, on your local machine, you will need the client to connect to the server:
 ```
 go install github.com/HACKERALERT/Heavypin/heavypin-client@latest
+```
+To connect to the server:
+```
+heavypin-client
 ```
 
 # How It Works
