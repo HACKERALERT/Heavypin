@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -33,7 +34,11 @@ func transfer(conn net.Conn, host, token string) {
 	form := url.Values{}
 	form.Add("host", host)
 	form.Add("token", token)
-	http.PostForm(*hostname+"/create", form)
+	res, err := http.PostForm(*hostname+"/create", form)
+	if err != nil || res.StatusCode != http.StatusNoContent {
+		conn.Close()
+		return
+	}
 
 	go func() {
 		for {
@@ -52,7 +57,7 @@ func transfer(conn net.Conn, host, token string) {
 			}
 			res.Body.Close()
 
-			if len(body) == 1<<15+1 {
+			if len(body) == 1<<16+1 {
 				conn.Close()
 				fmt.Println("Closed", token)
 				form := url.Values{}
@@ -63,12 +68,12 @@ func transfer(conn net.Conn, host, token string) {
 
 			fmt.Println(token, "received", len(body), "bytes from server")
 			conn.Write(body)
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(50 * time.Millisecond)
 		}
 	}()
 
 	for {
-		data := make([]byte, 1<<15)
+		data := make([]byte, 1<<16)
 		size, err := conn.Read(data)
 		if err != nil {
 			break
@@ -79,7 +84,7 @@ func transfer(conn net.Conn, host, token string) {
 		form.Add("token", token)
 		form.Add("content", hex.EncodeToString(data))
 		http.PostForm(*hostname+"/proxy", form)
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 }
 
@@ -105,10 +110,10 @@ func main() {
 		Addr: ":8888",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Connecting to", r.URL.String())
-			if r.Method == http.MethodConnect {
+			if r.Method == http.MethodConnect { // Standard HTTPS connection
 				handle(w, r)
-			} else {
-				w.WriteHeader(http.StatusMethodNotAllowed)
+			} else { // Redirect HTTP to HTTPS
+				http.Redirect(w, r, strings.ReplaceAll(r.URL.String(), "http://", "https://"), http.StatusPermanentRedirect)
 			}
 		}),
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),

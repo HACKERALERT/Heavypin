@@ -16,7 +16,7 @@ type Tunnel struct {
 
 func main() {
 	tunnels := struct {
-		sync.RWMutex
+		sync.Mutex
 		m map[string]*Tunnel
 	}{m: make(map[string]*Tunnel)}
 
@@ -25,8 +25,11 @@ func main() {
 	})
 
 	http.HandleFunc("/create", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Creating tunnel", r.FormValue("token"), "to", r.FormValue("host"))
-		conn, _ := net.DialTimeout("tcp", r.FormValue("host"), 10*time.Second)
+		conn, err := net.DialTimeout("tcp", r.FormValue("host"), 10*time.Second)
+		if err != nil {
+			w.WriteHeader(http.StatusGatewayTimeout)
+			return
+		}
 		tunnels.Lock()
 		tunnels.m[r.FormValue("token")] = &Tunnel{
 			conn: conn,
@@ -34,14 +37,9 @@ func main() {
 		}
 		tunnels.Unlock()
 		go func() {
+			conn.SetDeadline(time.Now().Add(10 * time.Second))
 			for {
-				data := make([]byte, 1<<15)
-				tunnels.Lock()
-				if _, ok := tunnels.m[r.FormValue("token")]; conn == nil || !ok {
-					tunnels.Unlock()
-					break
-				}
-				tunnels.Unlock()
+				data := make([]byte, 1<<16)
 				size, err := conn.Read(data)
 				if err != nil {
 					for {
@@ -51,23 +49,23 @@ func main() {
 						if len(data) == 0 {
 							break
 						}
-						time.Sleep(100 * time.Millisecond)
+						time.Sleep(50 * time.Millisecond)
 					}
 					tunnels.Lock()
-					tunnels.m[r.FormValue("token")].data = make([]byte, 1<<15+1)
+					tunnels.m[r.FormValue("token")].data = make([]byte, 1<<16+1)
 					tunnels.Unlock()
 					break
 				}
-				fmt.Println("Received", size, "bytes for", r.FormValue("token"))
+				if size != 0 {
+					conn.SetDeadline(time.Now().Add(10 * time.Second))
+				}
 				data = data[:size]
 				tunnels.Lock()
 				tunnels.m[r.FormValue("token")].data = append(tunnels.m[r.FormValue("token")].data, data...)
 				tunnels.Unlock()
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(50 * time.Millisecond)
 			}
-			if conn != nil {
-				conn.Close()
-			}
+			conn.Close()
 		}()
 		w.WriteHeader(http.StatusNoContent)
 	})
@@ -89,7 +87,7 @@ func main() {
 	http.HandleFunc("/retrieve", func(w http.ResponseWriter, r *http.Request) {
 		tunnels.Lock()
 		if _, ok := tunnels.m[r.FormValue("token")]; !ok {
-			w.Write(make([]byte, 1<<15+1))
+			w.Write(make([]byte, 1<<16+1))
 			tunnels.Unlock()
 			return
 		}
@@ -104,6 +102,13 @@ func main() {
 		delete(tunnels.m, r.FormValue("token"))
 		tunnels.Unlock()
 	})
+
+	go func() {
+		for {
+			fmt.Println(len(tunnels.m))
+			time.Sleep(100)
+		}
+	}()
 
 	fmt.Println("Listening on :8080...")
 	http.ListenAndServe(":8080", nil)
