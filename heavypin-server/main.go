@@ -58,11 +58,11 @@ func main() {
 				}
 				if size != 0 {
 					conn.SetDeadline(time.Now().Add(10 * time.Second))
+					data = data[:size]
+					tunnels.Lock()
+					tunnels.m[r.FormValue("token")].data = append(tunnels.m[r.FormValue("token")].data, data...)
+					tunnels.Unlock()
 				}
-				data = data[:size]
-				tunnels.Lock()
-				tunnels.m[r.FormValue("token")].data = append(tunnels.m[r.FormValue("token")].data, data...)
-				tunnels.Unlock()
 				time.Sleep(50 * time.Millisecond)
 			}
 			conn.Close()
@@ -70,30 +70,23 @@ func main() {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
+	// To-do: review code below
 	http.HandleFunc("/proxy", func(w http.ResponseWriter, r *http.Request) {
-		tunnels.Lock()
-		if _, ok := tunnels.m[r.FormValue("token")]; !ok || tunnels.m[r.FormValue("token")].conn == nil {
-			w.WriteHeader(http.StatusNoContent)
-			tunnels.Unlock()
-			return
-		}
-		fmt.Println("Proxying request for", r.FormValue("token"))
 		content, _ := hex.DecodeString(r.FormValue("content"))
-		tunnels.m[r.FormValue("token")].conn.Write(content)
+		tunnels.Lock()
+		if _, ok := tunnels.m[r.FormValue("token")]; ok {
+			tunnels.m[r.FormValue("token")].conn.Write(content)
+		}
 		tunnels.Unlock()
 		w.WriteHeader(http.StatusNoContent)
 	})
 
 	http.HandleFunc("/retrieve", func(w http.ResponseWriter, r *http.Request) {
 		tunnels.Lock()
-		if _, ok := tunnels.m[r.FormValue("token")]; !ok {
-			w.Write(make([]byte, 1<<16+1))
-			tunnels.Unlock()
-			return
+		if _, ok := tunnels.m[r.FormValue("token")]; ok {
+			w.Write(tunnels.m[r.FormValue("token")].data)
+			tunnels.m[r.FormValue("token")].data = nil
 		}
-		fmt.Println("Retrieving", len(tunnels.m[r.FormValue("token")].data), "bytes for", r.FormValue("token"))
-		w.Write(tunnels.m[r.FormValue("token")].data)
-		tunnels.m[r.FormValue("token")].data = nil
 		tunnels.Unlock()
 	})
 

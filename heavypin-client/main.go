@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/hex"
@@ -57,7 +58,7 @@ func transfer(conn net.Conn, host, token string) {
 			}
 			res.Body.Close()
 
-			if len(body) == 1<<16+1 {
+			if bytes.Equal(body, make([]byte, 1<<16+1)) {
 				conn.Close()
 				fmt.Println("Closed", token)
 				form := url.Values{}
