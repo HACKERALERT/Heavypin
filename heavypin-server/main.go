@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/hex"
-	"fmt"
 	"net"
 	"net/http"
 	"sync"
@@ -70,7 +69,6 @@ func main() {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	// To-do: review code below
 	http.HandleFunc("/proxy", func(w http.ResponseWriter, r *http.Request) {
 		content, _ := hex.DecodeString(r.FormValue("content"))
 		tunnels.Lock()
@@ -94,15 +92,8 @@ func main() {
 		tunnels.Lock()
 		delete(tunnels.m, r.FormValue("token"))
 		tunnels.Unlock()
+		w.WriteHeader(http.StatusNoContent)
 	})
 
-	go func() {
-		for {
-			fmt.Println(len(tunnels.m))
-			time.Sleep(100)
-		}
-	}()
-
-	fmt.Println("Listening on :8080...")
 	http.ListenAndServe(":8080", nil)
 }

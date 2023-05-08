@@ -45,14 +45,13 @@ func transfer(conn net.Conn, host, token string) {
 		for {
 			form := url.Values{}
 			form.Add("token", token)
-			var err error
-			var res *http.Response
-			var body []byte
-			if res, err = http.PostForm(*hostname+"/retrieve", form); err != nil {
+			res, err := http.PostForm(*hostname+"/retrieve", form)
+			if err != nil {
 				conn.Close()
 				break
 			}
-			if body, err = io.ReadAll(res.Body); err != nil {
+			body, err := io.ReadAll(res.Body)
+			if err != nil {
 				conn.Close()
 				break
 			}
@@ -60,14 +59,12 @@ func transfer(conn net.Conn, host, token string) {
 
 			if bytes.Equal(body, make([]byte, 1<<16+1)) {
 				conn.Close()
-				fmt.Println("Closed", token)
 				form := url.Values{}
 				form.Add("token", token)
 				http.PostForm(*hostname+"/done", form)
 				break
 			}
 
-			fmt.Println(token, "received", len(body), "bytes from server")
 			conn.Write(body)
 			time.Sleep(50 * time.Millisecond)
 		}
