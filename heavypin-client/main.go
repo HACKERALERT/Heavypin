@@ -96,21 +96,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Connecting to", *hostname)
+	fmt.Println("Attempting to connect to the server...")
 	res, err := http.Get(*hostname)
 	if err != nil || res.StatusCode != http.StatusNoContent {
-		fmt.Println("Couldn't connect to server!")
+		fmt.Println("Unable to establish a connection! Check your server address and try again.")
 		os.Exit(1)
 	}
-	fmt.Println("Connected to server, starting HTTP proxy on :8888")
+	fmt.Println("Connected to server. Use http://localhost:8888 as an HTTP proxy to access the Internet.")
 
 	server := &http.Server{
 		Addr: ":8888",
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Println("Connecting to", r.URL.String())
-			if r.Method == http.MethodConnect { // Standard HTTPS connection
+			if r.Method == http.MethodConnect {
 				handle(w, r)
-			} else { // Redirect HTTP to HTTPS
+			} else {
 				http.Redirect(w, r, strings.ReplaceAll(r.URL.String(), "http://", "https://"), http.StatusPermanentRedirect)
 			}
 		}),
