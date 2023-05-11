@@ -26,7 +26,7 @@ heavypin-client -s "http(s)://<server_hostname_or_ip>:<server_port>"
 ```
 For example, if you are hosting directly on `:8080` and have the server IP:
 ```
-heavypin-client -s "http://1.1.1.1:8080"
+heavypin-client -s "http://1.2.3.4:8080"
 ```
 Or if you are reverse proxying `:443` to `:8080` and have a hostname:
 ```
@@ -40,5 +40,5 @@ Heavypin is a mostly experimental and proof-of-concept project to demonstrate an
 # Inspiration
 The name "Heavypin" comes from "<strong>H</strong>TTPS <strong>VPN</strong>", which makes sense since it is essentially a VPN running over HTTPS.
 
-# Internals
+# How It Works
 Heavypin is an HTTPS-based proxy, meaning that instead of working with raw sockets, it uses HTTPS as a transport layer for tunneling data. Heavypin starts a local HTTP proxy server to catch your browser's traffic, and then uses many HTTPS requests to the proxy server to forward your traffic to the destination server. Then, the client will periodically poll the server for responses to previous requests and fetch them if available. After the responses are fetched, they are streamed back to the browser through the local HTTP proxy. Because everything is done over HTTPS, your connection to the server looks like normal web traffic to an unsuspecting observer. This makes it possible to bypass firewalls that block certain ports and protocols.
