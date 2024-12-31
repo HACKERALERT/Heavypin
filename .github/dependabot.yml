@@ -1,0 +1,8 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directories:
+      - "heavypin-client/"
+      - "heavypin-server/"
+    schedule:
+      interval: "daily"
