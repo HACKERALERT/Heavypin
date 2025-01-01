@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/hex"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -13,7 +14,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 )
 
 var hostname *string
@@ -26,7 +26,10 @@ func random() string {
 }
 
 func padding() string {
-	size, _ := rand.Int(rand.Reader, big.NewInt(1<<10))
+	size, err := rand.Int(rand.Reader, big.NewInt(1<<10))
+	if err != nil {
+		panic(err)
+	}
 	buff := make([]byte, size.Int64()+1)
 	rand.Read(buff)
 	return hex.EncodeToString(buff)
@@ -34,8 +37,14 @@ func padding() string {
 
 func handle(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	hijacker, _ := w.(http.Hijacker)
-	conn, _, _ := hijacker.Hijack()
+	hijacker, ok := w.(http.Hijacker)
+	if !ok {
+		panic(errors.New("hijacker not ok"))
+	}
+	conn, _, err := hijacker.Hijack()
+	if err != nil {
+		panic(err)
+	}
 	go transfer(conn, r.Host, random())
 }
 
@@ -95,7 +104,10 @@ func transfer(conn net.Conn, host, token string) {
 		data = data[:size]
 		body := bytes.NewReader(data)
 
-		req, _ := http.NewRequest("POST", *hostname+"/proxy", body)
+		req, err := http.NewRequest("POST", *hostname+"/proxy", body)
+		if err != nil {
+			panic(err)
+		}
 		req.Header.Add("token", token)
 		req.Header.Add("padding", padding())
 		req.Header.Add("password", *password)
@@ -137,7 +149,6 @@ func main() {
 		fmt.Println(" (unencrypted)")
 	} else {
 		versions := map[uint16]string{
-			tls.VersionSSL30: " (SSL 3.0)",
 			tls.VersionTLS10: " (TLS 1.0)",
 			tls.VersionTLS11: " (TLS 1.1)",
 			tls.VersionTLS12: " (TLS 1.2)",
@@ -153,10 +164,12 @@ func main() {
 			if r.Method == http.MethodConnect {
 				handle(w, r)
 			} else {
-				http.Redirect(w, r, strings.ReplaceAll(r.URL.String(), "http://", "https://"), http.StatusPermanentRedirect)
+				w.WriteHeader(http.StatusMethodNotAllowed)
 			}
 		}),
 		TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
 	}
-	server.ListenAndServe()
+	if err := server.ListenAndServe(); err != nil {
+		panic(err)
+	}
 }
