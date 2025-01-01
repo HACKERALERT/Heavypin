@@ -24,7 +24,9 @@ var config = &tls.Config{
 	InsecureSkipVerify: true,
 }
 var transport = &http.Transport{
-	TLSClientConfig: config,
+	TLSClientConfig:   config,
+	TLSNextProto:      map[string]func(string, *tls.Conn) http.RoundTripper{},
+	DisableKeepAlives: true,
 }
 var client = &http.Client{
 	Timeout:   time.Minute,
