@@ -14,13 +14,21 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
 var hostname *string
 var password *string
+var config = &tls.Config{
+	InsecureSkipVerify: true,
+}
+var transport = &http.Transport{
+	TLSClientConfig: config,
+}
 var client = &http.Client{
-	Timeout: time.Minute,
+	Timeout:   time.Minute,
+	Transport: transport,
 }
 
 func random() string {
@@ -121,7 +129,7 @@ func transfer(conn net.Conn, host, token string) {
 
 func main() {
 	flag.Usage = func() {
-		fmt.Println("Usage: heavypin-client -s http(s)://<server_hostname_or_ip> -p password")
+		fmt.Println("Usage: heavypin-client -s https://<server_ip> -p password")
 	}
 	hostname = flag.String("s", "", "")
 	password = flag.String("p", "", "")
@@ -130,6 +138,10 @@ func main() {
 	if *hostname == "" || *password == "" {
 		flag.Usage()
 		os.Exit(1)
+	}
+
+	if !strings.HasPrefix(*hostname, "https") {
+		panic(errors.New("server URL must be https"))
 	}
 
 	fmt.Print("Connecting to the server...")
@@ -151,7 +163,7 @@ func main() {
 	}
 	fmt.Print(" Success.\nCurrent connection suite... ", res.Proto)
 	if res.TLS == nil {
-		fmt.Println(" (unencrypted)")
+		panic(errors.New("failed to use TLS"))
 	} else {
 		versions := map[uint16]string{
 			tls.VersionTLS10: " (TLS 1.0)",
