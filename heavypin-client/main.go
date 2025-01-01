@@ -14,10 +14,14 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 )
 
 var hostname *string
 var password *string
+var client = &http.Client{
+	Timeout: time.Minute,
+}
 
 func random() string {
 	buff := make([]byte, 32)
@@ -54,7 +58,7 @@ func transfer(conn net.Conn, host, token string) {
 	form.Add("token", token)
 	form.Add("padding", padding())
 	form.Add("password", *password)
-	res, err := http.PostForm(*hostname+"/create", form)
+	res, err := client.PostForm(*hostname+"/create", form)
 	if err != nil || res.StatusCode != http.StatusNoContent {
 		conn.Close()
 		return
@@ -66,7 +70,7 @@ func transfer(conn net.Conn, host, token string) {
 			form.Add("token", token)
 			form.Add("padding", padding())
 			form.Add("password", *password)
-			res, err := http.PostForm(*hostname+"/retrieve", form)
+			res, err := client.PostForm(*hostname+"/retrieve", form)
 			if err != nil {
 				conn.Close()
 				break
@@ -84,7 +88,7 @@ func transfer(conn net.Conn, host, token string) {
 				form.Add("token", token)
 				form.Add("padding", padding())
 				form.Add("password", *password)
-				http.PostForm(*hostname+"/done", form)
+				client.PostForm(*hostname+"/done", form)
 				break
 			}
 
@@ -111,7 +115,6 @@ func transfer(conn net.Conn, host, token string) {
 		req.Header.Add("token", token)
 		req.Header.Add("padding", padding())
 		req.Header.Add("password", *password)
-		client := &http.Client{}
 		client.Do(req)
 	}
 }
@@ -130,10 +133,12 @@ func main() {
 	}
 
 	fmt.Print("Connecting to the server...")
-	req, _ := http.NewRequest("GET", *hostname, nil)
+	req, err := http.NewRequest("GET", *hostname, nil)
+	if err != nil {
+		panic(err)
+	}
 	req.Header.Add("padding", padding())
 	req.Header.Add("password", *password)
-	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println(" Unable to establish a connection!")
