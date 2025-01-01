@@ -25,24 +25,24 @@ jobs:
     - name: Build client
       run: |
         cd heavypin-client
-        GOOS=windows GOARCH=amd64 go build -v -ldflags="-s -w" -o heavypin-client-windows-amd64.exe main.go
-        GOOS=windows GOARCH=arm64 go build -v -ldflags="-s -w" -o heavypin-client-windows-arm64.exe main.go
-        GOOS=darwin GOARCH=amd64 go build -v -ldflags="-s -w" -o heavypin-client-macos-amd64 main.go
-        GOOS=darwin GOARCH=arm64 go build -v -ldflags="-s -w" -o heavypin-client-macos-arm64 main.go
-        GOOS=linux GOARCH=amd64 go build -v -ldflags="-s -w" -o heavypin-client-linux-amd64 main.go
-        GOOS=linux GOARCH=arm64 go build -v -ldflags="-s -w" -o heavypin-client-linux-arm64 main.go
+        GOOS=windows GOARCH=amd64 go build -v -ldflags="-s -w" -o heavypin-client-windows-amd64.exe .
+        GOOS=windows GOARCH=arm64 go build -v -ldflags="-s -w" -o heavypin-client-windows-arm64.exe .
+        GOOS=darwin GOARCH=amd64 go build -v -ldflags="-s -w" -o heavypin-client-macos-amd64 .
+        GOOS=darwin GOARCH=arm64 go build -v -ldflags="-s -w" -o heavypin-client-macos-arm64 .
+        GOOS=linux GOARCH=amd64 go build -v -ldflags="-s -w" -o heavypin-client-linux-amd64 .
+        GOOS=linux GOARCH=arm64 go build -v -ldflags="-s -w" -o heavypin-client-linux-arm64 .
       env:
         CGO_ENABLED: 0
 
     - name: Build server
       run: |
         cd heavypin-server
-        GOOS=windows GOARCH=amd64 go build -v -ldflags="-s -w" -o heavypin-server-windows-amd64.exe main.go
-        GOOS=windows GOARCH=arm64 go build -v -ldflags="-s -w" -o heavypin-server-windows-arm64.exe main.go
-        GOOS=darwin GOARCH=amd64 go build -v -ldflags="-s -w" -o heavypin-server-macos-amd64 main.go
-        GOOS=darwin GOARCH=arm64 go build -v -ldflags="-s -w" -o heavypin-server-macos-arm64 main.go
-        GOOS=linux GOARCH=amd64 go build -v -ldflags="-s -w" -o heavypin-server-linux-amd64 main.go
-        GOOS=linux GOARCH=arm64 go build -v -ldflags="-s -w" -o heavypin-server-linux-arm64 main.go
+        GOOS=windows GOARCH=amd64 go build -v -ldflags="-s -w" -o heavypin-server-windows-amd64.exe .
+        GOOS=windows GOARCH=arm64 go build -v -ldflags="-s -w" -o heavypin-server-windows-arm64.exe .
+        GOOS=darwin GOARCH=amd64 go build -v -ldflags="-s -w" -o heavypin-server-macos-amd64 .
+        GOOS=darwin GOARCH=arm64 go build -v -ldflags="-s -w" -o heavypin-server-macos-arm64 .
+        GOOS=linux GOARCH=amd64 go build -v -ldflags="-s -w" -o heavypin-server-linux-amd64 .
+        GOOS=linux GOARCH=arm64 go build -v -ldflags="-s -w" -o heavypin-server-linux-arm64 .
       env:
         CGO_ENABLED: 0
 
