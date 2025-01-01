@@ -5,4 +5,4 @@ updates:
       - "heavypin-client/"
       - "heavypin-server/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
