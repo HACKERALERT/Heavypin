@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"flag"
@@ -15,6 +16,17 @@ import (
 	"sync"
 	"time"
 )
+
+var resolver = net.Resolver{
+	PreferGo: true,
+	Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+		d := &net.Dialer{
+			Timeout: 5 * time.Second,
+		}
+		return d.DialContext(ctx, network, "94.140.14.14:53")
+	},
+}
+var dialer = net.Dialer{Timeout: 10 * time.Second, Resolver: &resolver}
 
 var password *string
 
@@ -59,7 +71,7 @@ func main() {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		conn, err := net.DialTimeout("tcp", r.FormValue("host"), 5*time.Second)
+		conn, err := dialer.Dial("tcp", r.FormValue("host"))
 		if err != nil {
 			w.Header().Add("padding", padding())
 			w.WriteHeader(http.StatusGatewayTimeout)
@@ -84,7 +96,7 @@ func main() {
 						if len(data) == 0 {
 							break
 						}
-						time.Sleep(5 * time.Millisecond)
+						time.Sleep(10 * time.Millisecond)
 					}
 					tunnels.Lock()
 					tunnels.m[r.FormValue("token")].data = make([]byte, 1<<20+1)
@@ -95,7 +107,10 @@ func main() {
 					conn.SetDeadline(time.Now().Add(5 * time.Second))
 					data = data[:size]
 					tunnels.Lock()
-					tunnels.m[r.FormValue("token")].data = append(tunnels.m[r.FormValue("token")].data, data...)
+					tunnels.m[r.FormValue("token")].data = append(
+						tunnels.m[r.FormValue("token")].data,
+						data...,
+					)
 					tunnels.Unlock()
 				}
 			}
@@ -135,7 +150,7 @@ func main() {
 					break
 				}
 				tunnels.Unlock()
-				time.Sleep(5 * time.Millisecond)
+				time.Sleep(10 * time.Millisecond)
 			}
 
 			var body bytes.Buffer
