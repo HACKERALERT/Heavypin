@@ -17,7 +17,7 @@ func generateSelfSignedCert() (certPEM, keyPEM []byte, err error) {
 	}
 
 	notBefore := time.Now()
-	notAfter := notBefore.Add(365 * 24 * time.Hour)
+	notAfter := notBefore.Add(10 * 365 * 24 * time.Hour)
 
 	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
 	if err != nil {
