@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/hex"
 	"flag"
 	"fmt"
@@ -176,6 +177,29 @@ func main() {
 		w.WriteHeader(http.StatusNoContent)
 	})
 
-	fmt.Println("Listening on port 80...")
-	http.ListenAndServe(":80", nil)
+	certPEM, keyPEM, err := generateSelfSignedCert()
+	if err != nil {
+		panic(err)
+	}
+	cert, err := tls.X509KeyPair(certPEM, keyPEM)
+	if err != nil {
+		panic(err)
+	}
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		MinVersion:   tls.VersionTLS13,
+	}
+
+	server := &http.Server{
+		Addr:         ":443",
+		TLSConfig:    tlsConfig,
+		TLSNextProto: map[string]func(*http.Server, *tls.Conn, http.Handler){},
+		ReadTimeout:  time.Minute,
+		WriteTimeout: time.Minute,
+	}
+
+	fmt.Println("Listening on port 443 with a self-signed HTTPS certificate...")
+	if err := server.ListenAndServeTLS("", ""); err != nil {
+		panic(err)
+	}
 }
